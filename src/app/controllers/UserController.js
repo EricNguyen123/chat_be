@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Relationship = require('../models/Relationship');
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 
@@ -6,16 +7,48 @@ class UserController {
   async getUser(req, res, next) {
     try {
       const userId = req.params.id;
-      const user = await User.findByPk(userId);
+      const currentUser = req.user;
+  
+      if (!currentUser) {
+        return res.status(400).json({ message: 'Current user not found' });
+      }
+  
+      const user = await User.findByPk(userId, {
+        attributes: { exclude: ['password', 'createdAt', 'updatedAt', 'actived'] },
+      });
+  
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
-      res.status(200).json(user);
+  
+      const relationship = await Relationship.findOne({
+        where: {
+          followerId: currentUser.id,
+          followedId: userId
+        }
+      });
+
+      const followingCount = await Relationship.count({
+        where: {
+          followerId: userId,
+        }
+      });
+      
+      const followerCount = await Relationship.count({
+        where: {
+          followedId: userId,
+        }
+      });      
+  
+      const isFollowing = !!relationship;
+  
+      res.status(200).json({ ...user.toJSON(), isFollowing, followingCount, followerCount });
     } catch (error) {
       next(error);
     }
   }
-
+  
+  
   async getUsers(req, res, next) {
     try {
       const users = await User.findAll();
@@ -36,7 +69,19 @@ class UserController {
       if (!currentUser) {
         return res.status(404).json({ message: 'User not found' });
       }
-      res.status(200).json(currentUser);
+      const followingCount = await Relationship.count({
+        where: {
+          followerId: req.user.id,
+        }
+      });
+      
+      const followerCount = await Relationship.count({
+        where: {
+          followedId: req.user.id,
+        }
+      });    
+      
+      res.status(200).json({...currentUser.toJSON(), followingCount, followerCount});
     } catch (error) {
       next(error);
     }
