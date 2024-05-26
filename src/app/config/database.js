@@ -12,6 +12,7 @@ const sequelize = new Sequelize(
 
 async function connect() {
     try {
+        const models = require('../models');
         await sequelize.sync()
         .then(() => {
           Object.values(sequelize.models)

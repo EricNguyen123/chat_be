@@ -1,0 +1,25 @@
+const { DataTypes } = require('sequelize');
+const db = require('../config/database');
+
+const MediaItem = db.sequelize.define('MediaItem', {
+  resourceId: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'users',
+      key: 'id'
+    }
+  },
+  resourceType: {
+    type: DataTypes.STRING(255)
+  },
+  mediaType: {
+    type: DataTypes.TINYINT
+  },
+  mediaUrl: {
+    type: DataTypes.TEXT
+  }
+}, {
+  tableName: 'media_items'
+});
+
+module.exports = MediaItem;

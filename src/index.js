@@ -3,8 +3,7 @@ const express = require('express')
 const session = require('express-session');
 const morgan = require('morgan');
 const db = require('./app/config/database');
-const User = require('./app/models/User');
-const Relationship = require('./app/models/Relationship');
+const upload = require('./app/config/multer');
 const route = require('./app/routes');
 const cors = require('cors');
 const bodyParser = require('body-parser');  
@@ -12,6 +11,7 @@ const bodyParser = require('body-parser');
 const app = express()
 const port = process.env.PORT || 3002;
 db.connect()
+upload()
 app.use(morgan('combined'))
 app.use(cors());
 app.use(bodyParser.json());

@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const db = require('../config/database');
 
-const User = db.sequelize.define('user', {
+const User = db.sequelize.define('User', {
   name: {
     type: DataTypes.STRING,
     allowNull: false
@@ -17,7 +17,12 @@ const User = db.sequelize.define('user', {
   }, 
   actived: {
     type: DataTypes.TINYINT
+  },
+  avatar: {
+    type: DataTypes.INTEGER,
   }
+}, {
+  tableName: 'users'
 });
 
 module.exports = User;

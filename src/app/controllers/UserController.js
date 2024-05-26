@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Relationship = require('../models/Relationship');
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
+const MediaItem = require('../models/MediaItem');
 
 class UserController {
   async getUser(req, res, next) {
@@ -41,8 +42,10 @@ class UserController {
       });      
   
       const isFollowing = !!relationship;
+
+      const mediaAvatar = await MediaItem.findByPk(user.avatar)
   
-      res.status(200).json({ ...user.toJSON(), isFollowing, followingCount, followerCount });
+      res.status(200).json({ ...user.toJSON(), isFollowing, followingCount, followerCount, imagAvatar: mediaAvatar ? mediaAvatar.mediaUrl: undefined });
     } catch (error) {
       next(error);
     }
@@ -80,8 +83,10 @@ class UserController {
           followedId: req.user.id,
         }
       });    
+
+      const mediaAvatar = await MediaItem.findByPk(currentUser.avatar)
       
-      res.status(200).json({...currentUser.toJSON(), followingCount, followerCount});
+      res.status(200).json({...currentUser.toJSON(), followingCount, followerCount, imagAvatar: mediaAvatar ? mediaAvatar.mediaUrl : undefined});
     } catch (error) {
       next(error);
     }
