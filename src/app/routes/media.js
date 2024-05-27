@@ -7,5 +7,6 @@ const upload = multer({ dest: 'uploads/' });
 
 router.post('/upload', upload.single('media'), authMiddleware.verifyToken, MediaController.uploadMedia);
 router.post('/update_avatar', upload.single('avatar'), authMiddleware.verifyToken, MediaController.updateAvatar);
+router.get('/image/:id', authMiddleware.verifyToken, MediaController.getMedia);
 
 module.exports = router;

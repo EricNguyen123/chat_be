@@ -4,6 +4,20 @@ const ActiveStorageAttachment = require('../../models/ActiveStorageAttachment');
 const User = require('../../models/User');
 
 class MediaController {
+  async getMedia(req, res, next) {
+    try {
+      const media = await MediaItem.findByPk(req.params.id);
+      if (media) {
+        res.status(200).json({ success: true, mediaUrl: media.mediaUrl });
+      }
+      else {
+        res.status(404).json({ success: false, mediaUrl: media.mediaUrl });
+      }
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
   async updateAvatar(req, res) {
     try {
       const userId = req.user.id;

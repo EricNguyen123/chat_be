@@ -54,12 +54,17 @@ class UserController {
   
   async getUsers(req, res, next) {
     try {
-      const users = await User.findAll();
-      res.status(200).json(users);
+        const users = await User.findAll();
+        const result = await Promise.all(users.map(async user => {
+            const mediaAvatar = user.avatar ? await MediaItem.findByPk(user.avatar) : null;
+            return { ...user.toJSON(), imagAvatar: mediaAvatar ? mediaAvatar.mediaUrl : null };
+        }));
+        res.status(200).json(result);
     } catch (error) {
-      next(error);
+        next(error);
     }
-  }
+}
+
 
   async getCurrentUser(req, res, next) {
     try {

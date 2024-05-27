@@ -30,7 +30,7 @@ class LoginController {
         // Tạo JWT
         const token = jwt.sign({ id: existingUser.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        return res.status(200).json({ message: "Success", id: existingUser.id, success: true, token });
+        return res.status(200).json({ message: "Success", id: existingUser.id, avatar: existingUser.avatar, success: true, token });
       } else {
         const conflictError = 'User credentials are not valid.';
         return res.status(401).json({ conflictError, success: false });
