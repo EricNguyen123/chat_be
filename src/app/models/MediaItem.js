@@ -9,6 +9,13 @@ const MediaItem = db.sequelize.define('MediaItem', {
       key: 'id'
     }
   },
+  postId: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'posts',
+      key: 'id'
+    }
+  },
   resourceType: {
     type: DataTypes.STRING(255)
   },
