@@ -5,6 +5,7 @@ const ActiveStorageAttachment = require('../models/ActiveStorageAttachment');
 const db = require('../config/database');
 const User = require('../models/User');
 const Relationship = require('../models/Relationship');
+const React = require('../models/React');
 
 class PostController {
   async createPost(req, res) {
@@ -84,6 +85,10 @@ class PostController {
             transaction
           });
         }
+        await React.destroy({
+          where: { postId: postId },
+          transaction
+        });
         const childPosts = await Post.findAll({ where: { parentId: postId }, transaction });
         for (const childPost of childPosts) {
           await deletePostRecursively(childPost.id, transaction);
@@ -118,6 +123,10 @@ class PostController {
             {
               model: MediaItem,
               attributes: ['id', 'mediaType', 'mediaUrl']
+            },
+            {
+              model: React,
+              attributes: ['id', 'action', 'userId']
             }
           ],
           order: [['createdAt', 'DESC']]
@@ -224,6 +233,10 @@ class PostController {
           {
             model: MediaItem,
             attributes: ['id', 'mediaType', 'mediaUrl']
+          },
+          {
+            model: React,
+            attributes: ['id', 'action', 'userId']
           }
         ]
       });
@@ -275,6 +288,10 @@ class PostController {
             {
               model: MediaItem,
               attributes: ['id', 'mediaType', 'mediaUrl']
+            },
+            {
+              model: React,
+              attributes: ['id', 'action', 'userId']
             }
           ],
           order: [['createdAt', 'DESC']]
@@ -316,6 +333,10 @@ class PostController {
           {
             model: MediaItem, 
             attributes: ['id', 'mediaType', 'mediaUrl']
+          },
+          {
+            model: React,
+            attributes: ['id', 'action', 'userId']
           }
         ],
         order: [['createdAt', 'DESC']]
@@ -364,6 +385,10 @@ class PostController {
             {
               model: MediaItem,
               attributes: ['id', 'mediaType', 'mediaUrl']
+            },
+            {
+              model: React,
+              attributes: ['id', 'action', 'userId']
             }
           ],
           order: [['createdAt', 'DESC']]
@@ -408,6 +433,10 @@ class PostController {
           {
             model: MediaItem, 
             attributes: ['id', 'mediaType', 'mediaUrl']
+          },
+          {
+            model: React,
+            attributes: ['id', 'action', 'userId']
           }
         ],
         order: [['createdAt', 'DESC']]

@@ -5,7 +5,8 @@ const Relationship = require('./relationship')
 const Media = require('./media')
 const express = require('express');
 const path = require('path');
-const Post = require('./post')
+const Post = require('./post');
+const React = require('./react');
 
 function route(app) {
   app.use('/register', Register)
@@ -14,6 +15,7 @@ function route(app) {
   app.use('/media', Media)
   app.use('/uploads', express.static(path.join(__dirname, '../../../uploads')));
   app.use('/posts', Post)
+  app.use('/reacts', React)
   app.use('/', web)
 }
 

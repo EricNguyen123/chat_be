@@ -4,9 +4,12 @@ const ActiveStorageBlob = require('./ActiveStorageBlob');
 const MediaItem = require('./MediaItem');
 const ActiveStorageAttachment = require('./ActiveStorageAttachment');
 const Post = require('./Post');
+const React = require('./React');
 
 MediaItem.associate = function(models) {
   this.hasMany(models.ActiveStorageAttachment, { foreignKey: 'mediaItemId' });
+  this.belongsTo(models.User, { foreignKey: 'resourceId' });
+  this.belongsTo(models.Post, { foreignKey: 'postId' });
 };
 
 ActiveStorageBlob.associate = function(models) {
@@ -20,29 +23,19 @@ ActiveStorageAttachment.associate = function(models) {
 
 User.associate = function(models) {
   this.hasMany(models.MediaItem, { foreignKey: 'resourceId' });
-};
-
-
-MediaItem.associate = function(models) {
-  this.belongsTo(models.User, { foreignKey: 'resourceId' });
-};
-
-User.associate = function(models) {
   this.hasMany(models.Post, { foreignKey: 'userId' });
+  this.hasMany(models.React, { foreignKey: 'userId' });
 };
-
 
 Post.associate = function(models) {
   this.belongsTo(models.User, { foreignKey: 'userId' });
-};
-
-Post.associate = function(models) {
   this.hasMany(models.MediaItem, { foreignKey: 'postId' });
+  this.hasMany(models.React, { foreignKey: 'postId' });
 };
 
-
-MediaItem.associate = function(models) {
+React.associate = function(models) {
   this.belongsTo(models.Post, { foreignKey: 'postId' });
+  this.belongsTo(models.User, { foreignKey: 'userId' });
 };
 
 module.exports = {
@@ -52,4 +45,5 @@ module.exports = {
   MediaItem,
   ActiveStorageBlob,
   ActiveStorageAttachment,
+  React,
 };
