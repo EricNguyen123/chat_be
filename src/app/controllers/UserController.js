@@ -59,7 +59,7 @@ class UserController {
     async getUsers(req, res, next) {
         try {
             const { q, type = 'less' } = req.query;
-
+            const currentUser = req.user;
             let users;
             if (q && q.trim()) {
               const searchQuery = q.trim();
@@ -80,8 +80,15 @@ class UserController {
 
             const result = await Promise.all(
                 users.map(async (user) => {
+                    const relationship = await Relationship.findOne({
+                        where: {
+                            followerId: currentUser.id,
+                            followedId: user.id,
+                        },
+                    });
+                    const isFollowing = !!relationship;
                     const mediaAvatar = user.avatar ? await MediaItem.findByPk(user.avatar) : null;
-                    return { ...user.toJSON(), imagAvatar: mediaAvatar ? mediaAvatar.mediaUrl : null };
+                    return { ...user.toJSON(), isFollowing, imagAvatar: mediaAvatar ? mediaAvatar.mediaUrl : null };
                 })
             );
 

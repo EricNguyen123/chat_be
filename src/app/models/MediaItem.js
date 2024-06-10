@@ -16,6 +16,20 @@ const MediaItem = db.sequelize.define('MediaItem', {
       key: 'id'
     }
   },
+  roomId: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'rooms',
+      key: 'id'
+    }
+  },
+  messageId: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'messages',
+      key: 'id'
+    }
+  },
   resourceType: {
     type: DataTypes.STRING(255)
   },
