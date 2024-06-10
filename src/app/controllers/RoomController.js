@@ -70,8 +70,6 @@ class RoomController {
   async createGroupRoom(req, res, next) {
     const transaction = await db.sequelize.transaction();
     try {
-        console.log("req.body", req.body);
-        console.log("req.files", req.files);
         
         const { title, userIds } = req.body;
         const currentUser = req.user;
@@ -185,11 +183,19 @@ class RoomController {
 
         const rooms = await Promise.all(remembers.map(async (remember) => {
             const room = remember.Room.get({ plain: true });
-            const roomAvatar = await MediaItem.findOne({
-              where: {
-                roomId: room.id
+            
+            let roomAvatar = null;
+            if (room.groups === 0) {
+              const otherUser = room.Remembers.find(member => member.userId !== currentUser.id)?.User;
+              if (otherUser) {
+                roomAvatar = await MediaItem.findByPk(otherUser.avatar);
+                room.title = otherUser.name;
               }
-            })
+            } else {
+              roomAvatar = await MediaItem.findOne({
+                where: { roomId: room.id }
+              });
+            }
             const users = await Promise.all(room.Remembers.map(async (member) => {
                 if (!member.User) {
                     return null;

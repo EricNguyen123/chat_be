@@ -8,6 +8,7 @@ const path = require('path');
 const Post = require('./post');
 const React = require('./react');
 const Room = require('./room');
+const Message = require('./message');
 
 function route(app) {
   app.use('/register', Register)
@@ -18,6 +19,7 @@ function route(app) {
   app.use('/posts', Post)
   app.use('/reacts', React)
   app.use('/rooms', Room)
+  app.use('/messages', Message)
   app.use('/', web)
 }
 

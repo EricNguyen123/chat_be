@@ -1,42 +1,40 @@
+const userHandlers = require('../sockets/userHandlers');
+const postHandlers = require('../sockets/postHandlers');
+const messagesHandlers = require('../sockets/messagesHandlers');
+
 let io;
 const userSockets = new Map();
+const roomSockets = new Map();
 
 const init = (socketIo) => {
   io = socketIo;
   io.on('connection', (socket) => {
-    console.log('A new client connected');
-
-    socket.on('register', (userId) => {
-      userSockets.set(userId, socket.id);
-      console.log(`User ${userId} registered with socket id ${socket.id}`);
+    console.log('A new client connected', socket.id);
+  
+    socket.on('registerUser', (userId) => {
+      userHandlers.registerUser(socket, userId, io, userSockets);
     });
-
+  
     socket.on('disconnect', () => {
-      console.log('Client disconnected');
-      userSockets.forEach((value, key) => {
-        if (value === socket.id) {
-          userSockets.delete(key);
-        }
-      });
+      userHandlers.handleDisconnect(socket, io, userSockets);
     });
-  });
-};
+  
+    socket.on('error', (error) => {
+      console.error('Socket error:', error);
+    });
 
-const notifyPostCreated = async (post, db) => {
-  const followers = await db.query(
-    'SELECT follower_id FROM followers WHERE followed_id = ?',
-    [post.userId]
-  );
+    socket.on('joinRoom', (data) => {
+      messagesHandlers.roomJoin(socket, data, roomSockets);
+    })
 
-  followers.forEach(follower => {
-    const followerSocketId = userSockets.get(follower.follower_id);
-    if (followerSocketId) {
-      io.to(followerSocketId).emit('postCreated', { message: 'Post created successfully', post });
-    }
+    socket.on('messages', (data) => {
+      messagesHandlers.messagesNoti(io, socket, data, roomSockets);
+    })
   });
+  
 };
 
 module.exports = {
   init,
-  notifyPostCreated
+  notifyPostCreated: postHandlers.notifyPostCreated,
 };

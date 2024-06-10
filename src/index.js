@@ -20,14 +20,6 @@ app.use(morgan('combined'))
 app.use(cors());
 app.use(bodyParser.json());
 
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: true,
-  saveUninitialized: true,
-}))
-
-route(app);
-
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -37,6 +29,14 @@ const io = new Server(server, {
 });
 
 socketHandler.init(io);
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: true,
+  saveUninitialized: true,
+}))
+
+route(app);
 
 server.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
