@@ -5,19 +5,20 @@ const registerUser = async (socket, userId, io, userSockets) => {
   console.log(`User ${userId} registered with socket id ${socket.id}`);
 
   try {
-    const user = await User.findByPk(userId, {
-      include: {
-        model: User,
-        as: 'followers',
-        attributes: ['id'],
+    const users = await Relationship.findAll({
+      where: {
+        followedId: userId,
       },
+      attributes: ['followerId']
     });
 
-    if(user) {
-      user.followers.forEach(friend => {
-        const friendSocketId = userSockets.get(friend.id);
+    if(users) {
+      users.forEach(friend => {
+        
+        const friendSocketId = userSockets.get(friend.followerId);
         if (friendSocketId) {
           io.to(friendSocketId).emit('friendOnline', { userId });
+          socket.emit('friendOnline', { userId: friend.followerId })
         }
       });
     }

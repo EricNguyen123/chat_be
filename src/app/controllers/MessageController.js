@@ -3,9 +3,11 @@ const db = require('../config/database');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const MediaItem = require('../models/MediaItem');
+const Remember = require('../models/Remember');
 const ActiveStorageBlob = require('../models/ActiveStorageBlob');
 const ActiveStorageAttachment = require('../models/ActiveStorageAttachment');
 const Relationship = require('../models/Relationship');
+const React = require('../models/React');
 const { messagesNoti } = require('../sockets/messagesHandlers'); 
 
 class MessageController {
@@ -13,7 +15,7 @@ class MessageController {
     const transaction = await db.sequelize.transaction();
     try {
       const { message, userId, roomId } = req.body;
-      const newMessage = await Message.create({ messages: message, userId, roomId }, { transaction });
+      const newMessage = await Message.create({ messages: message || '', userId, roomId }, { transaction });
       if (req.files && req.files.length > 0) {
         const mediaPromises = req.files.map(async file => {
           const blob = await ActiveStorageBlob.create({
@@ -28,7 +30,7 @@ class MessageController {
             resourceId: userId,
             messageId: newMessage.id,
             resourceType: 'message',
-            mediaType: 1,
+            mediaType: file.mimetype.startsWith('audio/') ? 2 : 1,
             mediaUrl: `/uploads/${file.filename}`,
           }, { transaction });
 
@@ -51,6 +53,7 @@ class MessageController {
       });
     } catch (err) {
       await transaction.rollback();
+      console.log("err.message", err.message)
       res.status(500).json({
         error: err.message,
         success: false,
@@ -64,10 +67,39 @@ class MessageController {
       const { id } = req.params;
 
       const message = await Message.findByPk(id, { transaction });
+      const msgId = message.id;
+      const roomId = message.roomId;
       if (!message) {
         await transaction.rollback();
         return res.status(404).json({ success: false, message: 'Message not found' });
       }
+
+      const existingMediaItems = await MediaItem.findAll({ where: { messageId: id }, transaction });
+      const existingMediaIds = existingMediaItems.map(media => media.id);
+
+        if (existingMediaIds.length > 0) {
+          const attachmentsToDelete = await ActiveStorageAttachment.findAll({
+            where: { mediaItemId: existingMediaIds },
+            transaction
+          });
+    
+          const blobIdsToDelete = attachmentsToDelete.map(attachment => attachment.blobId);
+    
+          await ActiveStorageAttachment.destroy({
+            where: { mediaItemId: existingMediaIds },
+            transaction
+          });
+    
+          await ActiveStorageBlob.destroy({
+            where: { id: blobIdsToDelete },
+            transaction
+          });
+    
+          await MediaItem.destroy({
+            where: { id: existingMediaIds },
+            transaction
+          });
+        }
 
       await message.destroy({ transaction });
       await transaction.commit();
@@ -75,6 +107,8 @@ class MessageController {
       res.status(200).json({
         success: true,
         message: 'Message deleted successfully',
+        id: msgId,
+        roomId: roomId,
       });
     } catch (err) {
       await transaction.rollback();
@@ -89,12 +123,31 @@ class MessageController {
     try {
       const { roomId } = req.params;
       const currentUser = req.user;
+      const remember = await Remember.findOne({
+        where: {
+          roomId: roomId,
+          userId: currentUser.id,
+        }
+      });
+
+      let whereCondition = { roomId: roomId };
+
+      if (remember && remember.deleteAt) {
+        whereCondition.createdAt = {
+          [Op.gt]: remember.deleteAt 
+        };
+      }
+
       const messages = await Message.findAll({
-        where: { roomId },
+        where: whereCondition,
         include: [
           {
             model: MediaItem, 
             attributes: ['id', 'mediaType', 'mediaUrl']
+          },
+          {
+            model: React,
+            attributes: ['id', 'action', 'userId']
           }
         ],
         order: [['createdAt', 'ASC']],
@@ -131,6 +184,7 @@ class MessageController {
         messages,
       });
     } catch (err) {
+      console.log("err.message", err.message)
       res.status(500).json({
         error: err.message,
         success: false,

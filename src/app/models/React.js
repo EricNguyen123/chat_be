@@ -19,7 +19,14 @@ const React = db.sequelize.define('React', {
       model: 'posts',
       key: 'id'
     }
-  }
+  },
+  messageId: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'messages',
+      key: 'id'
+    }
+  },
 }, {
   tableName: 'reacts'
 });

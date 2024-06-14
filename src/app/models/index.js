@@ -43,6 +43,7 @@ Post.associate = function(models) {
 React.associate = function(models) {
   this.belongsTo(models.Post, { foreignKey: 'postId' });
   this.belongsTo(models.User, { foreignKey: 'userId' });
+  this.belongsTo(models.Message, { foreignKey: 'messageId' });
 };
 
 Room.associate = function(models) {
@@ -55,6 +56,7 @@ Message.associate = function(models) {
   this.belongsTo(models.User, { foreignKey: 'userId' });
   this.belongsTo(models.Room, { foreignKey: 'roomId' });
   this.hasMany(models.MediaItem, { foreignKey: 'messageId' });
+  this.hasMany(models.React, { foreignKey: 'messageId' });
 }
 
 Remember.associate = function(models) {

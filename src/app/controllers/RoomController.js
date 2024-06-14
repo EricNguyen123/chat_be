@@ -54,7 +54,7 @@ class RoomController {
         res.status(200).json({
           success: true,
           message: 'One-to-One Room already exists',
-          room: existingRooms[0].Room,
+          room: existingRooms[0],
         });
       }
     } catch (err) {
@@ -168,7 +168,12 @@ class RoomController {
         const currentUser = req.user;
 
         const remembers = await Remember.findAll({
-            where: { userId: currentUser.id },
+            where: { 
+                userId: currentUser.id,
+                isDelete: {
+                  [Op.or]: [null, { [Op.ne]: 1 }]
+                }
+             },
             include: [{
                 model: Room,
                 include: [{

@@ -1,19 +1,20 @@
 const React = require('../models/React');
 const db = require('../config/database');
 const Post = require('../models/Post');
+const Message = require('../models/Message');
 
 class ReactController {
   async getReacts(req, res, next) {
     try {
-      const { postId } = req.query;
+      const { postId, messageId } = req.query;
+      const condition = postId ? { postId } : { messageId };
+      const includeModel = postId ? Post : Message;
 
       const reacts = await React.findAll({
-        where: {
-          postId: postId,
-        },
+        where: condition,
         include: [
           {
-            model: Post,
+            model: includeModel,
           }
         ],
       });
@@ -32,13 +33,13 @@ class ReactController {
   async createReact(req, res, next) {
     const transaction = await db.sequelize.transaction();
     try {
-      const { action, userId, postId } = req.body;
+      const { action, userId, postId, messageId } = req.body;
+
+      const condition = postId ? { userId, postId } : { userId, messageId };
+
 
       const findReact = await React.findOne({
-        where: {
-          userId: userId,
-          postId: postId,
-        },
+        where: condition,
         transaction, 
       });
 
@@ -47,24 +48,21 @@ class ReactController {
         await React.update(
           { action },
           {
-            where: {
-              userId: userId,
-              postId: postId,
-            },
+            where: condition,
             transaction,
           }
         );
       } else {
-        react = await React.create({ action, userId, postId }, { transaction });
+        const newReactData = postId ? { action, userId, postId } : { action, userId, messageId };
+        react = await React.create(newReactData, { transaction });
       }
+
+      const includeModel = postId ? Post : Message;
       react = await React.findOne({
-        where: {
-          userId: userId,
-          postId: postId,
-        },
+        where: condition,
         include: [
           {
-            model: Post,
+            model: includeModel,
           }
         ],
         transaction, 
@@ -81,13 +79,11 @@ class ReactController {
   async deleteReact(req, res, next) {
     const transaction = await db.sequelize.transaction();
     try {
-      const { userId, postId } = req.query;
+      const { userId, postId, messageId } = req.query;
 
+      const condition = postId ? { userId, postId } : { userId, messageId };
       const findReact = await React.findOne({
-        where: {
-          userId: userId,
-          postId: postId,
-        },
+        where: condition,
         transaction,
       });
 
@@ -97,15 +93,12 @@ class ReactController {
       }
 
       await React.destroy({
-        where: {
-          userId: userId,
-          postId: postId,
-        },
+        where: condition,
         transaction,
       });
 
       await transaction.commit();
-      res.status(200).json({ success: true, postId: postId, message: 'React deleted successfully' });
+      res.status(200).json({ success: true, postId: postId, messageId: messageId, message: 'React deleted successfully' });
 
     } catch (error) {
       await transaction.rollback();

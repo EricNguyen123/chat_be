@@ -16,6 +16,12 @@ const Remember = db.sequelize.define('Remember', {
       model: 'rooms',
       key: 'id'
     }
+  },
+  isDelete: {
+    type: DataTypes.INTEGER
+  },
+  deleteAt: {
+    type: DataTypes.DATE
   }
 }, {
   tableName: 'remembers'

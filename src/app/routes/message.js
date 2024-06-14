@@ -7,6 +7,7 @@ const upload = multer({ dest: 'uploads/' });
 
 router.get('/:roomId', authMiddleware.verifyToken, MessageController.getAllMessagesByRoom);
 router.delete('/:id', authMiddleware.verifyToken, MessageController.deleteMessage);
+router.post('/audio', upload.array('audio'), authMiddleware.verifyToken, MessageController.addMessage);
 router.post('/', upload.array('mediaItems'), authMiddleware.verifyToken, MessageController.addMessage);
 
 module.exports = router;
