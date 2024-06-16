@@ -21,8 +21,8 @@ class LoginController {
       }
 
       const isPasswordValid = await bcrypt.compare(password, existingUser.password);
-
-      if (isPasswordValid) {
+      const isActived = existingUser.actived === 1 ? true : false;
+      if (isPasswordValid && isActived) {
         // Tạo session
         req.session.loggedin = true;
         req.session.user = existingUser;
