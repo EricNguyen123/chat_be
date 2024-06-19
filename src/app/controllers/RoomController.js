@@ -7,6 +7,7 @@ const Room = require('../models/Room');
 const Remember = require('../models/Remember');
 const ActiveStorageBlob = require('../models/ActiveStorageBlob');
 const ActiveStorageAttachment = require('../models/ActiveStorageAttachment');
+const Message = require('../models/Message');
 
 class RoomController {
   async createOneToOneRoom(req, res, next) {
@@ -236,6 +237,38 @@ class RoomController {
     } catch (err) {
         console.log("err", err.message);
         next(err);
+    }
+  }
+
+  async deleteRemember(req, res, next) {
+    const transaction = await db.sequelize.transaction();
+    try {
+      const { userId, roomId, outCheck } = req.body;
+      console.log('req.body', req.body)
+      const user = await User.findByPk(userId, { transaction });
+      const remember = await Remember.findOne({
+        where: {
+          userId: userId,
+          roomId: roomId,
+        },
+        transaction
+      })
+      if(!remember) {
+        await transaction.rollback();
+        return res.status(404).json({ success: false, message: 'Member not found' });
+      }
+      const outMessage = await Message.create({ messages: `${user.name} has left the group.`, userId, roomId, outCheck }, { transaction });
+      await remember.destroy({ transaction });
+      await transaction.commit();
+      res.status(200).json({
+        success: true,
+        message: 'Member deleted successfully',
+        userId: userId,
+        roomId: roomId,
+        outMessage: outMessage,
+      });
+    } catch (err) {
+      next(err);
     }
   }
 }

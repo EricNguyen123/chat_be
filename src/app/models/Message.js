@@ -20,6 +20,9 @@ const Message = db.sequelize.define('Message', {
       model: 'rooms',
       key: 'id'
     }
+  },
+  outCheck: {
+    type: DataTypes.INTEGER,
   }
 }, {
   tableName: 'messages'
